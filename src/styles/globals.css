@@ -1,0 +1,933 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Rubik+Scribble&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── BASE THEME VARIABLES ─── */
+:root {
+  --background: 120 30% 2%;
+  --foreground: 120 100% 65%;
+  --card: 120 20% 5%;
+  --card-foreground: 120 100% 65%;
+  --popover: 120 20% 5%;
+  --popover-foreground: 120 100% 65%;
+  --primary: 120 100% 50%;
+  --primary-foreground: 120 30% 2%;
+  --secondary: 120 15% 10%;
+  --secondary-foreground: 120 80% 55%;
+  --muted: 120 15% 10%;
+  --muted-foreground: 120 40% 35%;
+  --accent: 120 60% 15%;
+  --accent-foreground: 120 100% 65%;
+  --destructive: 0 85% 45%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 120 60% 18%;
+  --input: 120 60% 18%;
+  --ring: 120 100% 50%;
+  --radius: 2px;
+  --font-family: 'Share Tech Mono', 'Courier New', monospace;
+}
+
+/* ─── Base Resets ─── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  border-color: hsl(var(--border));
+}
+
+html {
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  overflow: hidden;
+  min-height: 100vh;
+  position: relative;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ─── UI Polish ─── */
+::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: hsl(var(--primary));
+}
+
+:focus-visible {
+  outline: 1px solid hsl(var(--ring));
+  outline-offset: 1px;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: var(--radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* ─── Drag Region ─── */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+
+/* ─── Shared Utilities ─── */
+.glass-panel {
+  background: hsl(var(--card) / 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
+[data-theme-style="retro"] .glass-panel {
+  background: hsl(var(--card));
+  backdrop-filter: none;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 0 8px hsl(var(--primary) / 0.08), inset 0 0 8px hsl(var(--primary) / 0.03);
+}
+
+/* =========================================
+   RETRO THEME (Pip-Boy) STYLES
+   ========================================= */
+
+
+
+[data-theme-style="retro"] {
+  --font-family: 'Share Tech Mono', monospace;
+  -webkit-font-smoothing: none;
+}
+
+[data-theme-style="retro"] body {
+  background-color: hsl(var(--background));
+}
+
+/* CRT Scanlines */
+[data-theme-style="retro"] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.15) 2px,
+      rgba(0, 0, 0, 0.15) 4px);
+  mix-blend-mode: multiply;
+}
+
+/* CRT Vignette */
+[data-theme-style="retro"] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: radial-gradient(ellipse at center,
+      transparent 60%,
+      rgba(0, 0, 0, 0.5) 100%);
+}
+
+/* Retro Scrollbar */
+[data-theme-style="retro"] ::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+[data-theme-style="retro"] ::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.4);
+  border-radius: 0;
+}
+
+[data-theme-style="retro"] ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
+}
+
+/* Retro Utilities */
+[data-theme-style="retro"] .glass {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  backdrop-filter: none;
+}
+
+[data-theme-style="retro"] .pipboy-border {
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 0 8px hsl(var(--primary) / 0.08), inset 0 0 8px hsl(var(--primary) / 0.03);
+}
+
+[data-theme-style="retro"] .glow-text {
+  text-shadow: 0 0 8px hsl(var(--primary) / 0.6), 0 0 20px hsl(var(--primary) / 0.2);
+}
+
+[data-theme-style="retro"] .glow-primary {
+  box-shadow: 0 0 15px hsl(var(--primary) / 0.3), 0 0 5px hsl(var(--primary) / 0.15);
+}
+
+/* Retro Animations */
+[data-theme-style="retro"] .animate-terminal-blink {
+  animation: terminal-blink 1s step-end infinite;
+}
+
+[data-theme-style="retro"] .animate-screen-flicker {
+  animation: screen-flicker 8s infinite;
+}
+
+[data-theme-style="retro"] .animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.06) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 4s infinite;
+}
+
+
+/* =========================================
+   MODERN THEME STYLES
+   ========================================= */
+
+[data-theme-style="modern"] {
+  --font-family: 'Space Grotesk', system-ui, sans-serif;
+}
+
+[data-theme-style="modern"] .glass {
+  background: hsl(var(--card) / 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
+/* Disable Retro Effects in Modern */
+[data-theme-style="modern"] .pipboy-border {
+  border: 1px solid hsl(var(--border) / 0.5);
+  box-shadow: none;
+  border-radius: var(--radius);
+}
+
+[data-theme-style="modern"] .glow-text {
+  text-shadow: none;
+}
+
+[data-theme-style="modern"] .glow-primary {
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2), 0 4px 12px hsl(var(--primary) / 0.1);
+}
+
+[data-theme-style="modern"] .animate-shimmer {
+  display: none;
+}
+
+[data-theme-style="modern"] body::after,
+[data-theme-style="modern"] body::before {
+  display: none;
+}
+
+
+/* =========================================
+   DEADPOOL THEME STYLES
+   ========================================= */
+
+[data-theme-style="deadpool"] {
+  --font-family: 'Bangers', 'Space Grotesk', sans-serif;
+  letter-spacing: 1px;
+}
+
+[data-theme-style="deadpool"] h1,
+[data-theme-style="deadpool"] h2,
+[data-theme-style="deadpool"] h3 {
+  font-family: 'Bangers', cursive;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+[data-theme-style="deadpool"] .glass-panel {
+  background: hsl(var(--card));
+  border: 2px solid hsl(var(--border));
+  box-shadow: 4px 4px 0 hsl(var(--primary) / 0.2);
+  transform: rotate(-0.5deg);
+}
+
+[data-theme-style="deadpool"] button {
+  font-family: 'Bangers', cursive;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  transition: all 0.1s ease;
+}
+
+[data-theme-style="deadpool"] button:hover {
+  transform: scale(1.02) rotate(1deg);
+}
+
+[data-theme-style="deadpool"] button:active {
+  transform: scale(0.95);
+}
+
+/* Scribble Borders for inputs */
+[data-theme-style="deadpool"] input,
+[data-theme-style="deadpool"] textarea,
+[data-theme-style="deadpool"] select {
+  border: 2px solid hsl(var(--border));
+  border-radius: 4px;
+  font-family: 'Space Grotesk', sans-serif;
+  /* Keep inputs readable */
+  letter-spacing: normal;
+}
+
+[data-theme-style="deadpool"] input:focus,
+[data-theme-style="deadpool"] textarea:focus {
+  border-color: hsl(var(--primary));
+  box-shadow: 2px 2px 0 hsl(var(--primary));
+  transform: rotate(0.5deg);
+}
+
+/* Custom Scrollbar for Deadpool */
+[data-theme-style="deadpool"] ::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 0;
+}
+
+[data-theme-style="deadpool"] ::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+[data-theme-style="deadpool"] ::selection {
+  background: hsl(var(--primary));
+  color: white;
+}
+
+/* Rough Borders Utility */
+[data-theme-style="deadpool"] .border-rough {
+  box-shadow: 3px 3px 0 hsl(var(--border));
+}
+
+
+/* =========================================
+   LIQUID GLASS THEME STYLES
+   ========================================= */
+
+[data-theme-style="liquid-glass"] {
+  --font-family: 'Outfit', 'Space Grotesk', system-ui, sans-serif;
+  --glass-border: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
+  --glass-highlight: rgba(255, 255, 255, 0.15);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* High-quality Glass Panels */
+[data-theme-style="liquid-glass"] .glass-panel {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: var(--glass-shadow);
+  border-radius: 1.5rem;
+  /* More rounded for liquid feel */
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Shine effect on glass panels */
+[data-theme-style="liquid-glass"] .glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: skewX(-25deg);
+  transition: left 0.5s;
+  pointer-events: none;
+}
+
+[data-theme-style="liquid-glass"] .glass-panel:hover::before {
+  left: 100%;
+  transition: left 0.7s;
+}
+
+/* Hover effect */
+[data-theme-style="liquid-glass"] .glass-panel:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Disable retro effects */
+[data-theme-style="liquid-glass"] body::after,
+[data-theme-style="liquid-glass"] body::before {
+  display: none;
+}
+
+/* Reset any unwanted background on body/root for this theme specifically to allow our custom one */
+[data-theme-style="liquid-glass"] body {
+  background-color: #0f172a;
+  /* Fallback deep blue/slate */
+  background-image:
+    radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.25) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.25) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.25) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.25) 0px, transparent 50%);
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+/* Animated Background Orbs */
+[data-theme-style="liquid-glass"] #root::before {
+  content: '';
+  position: fixed;
+  top: 20%;
+  left: 20%;
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.4) 0%, rgba(56, 189, 248, 0) 70%);
+  border-radius: 50%;
+  filter: blur(60px);
+  z-index: -1;
+  animation: liquid-float 15s infinite alternate ease-in-out;
+  opacity: 0.6;
+}
+
+[data-theme-style="liquid-glass"] #root::after {
+  content: '';
+  position: fixed;
+  bottom: 10%;
+  right: 10%;
+  width: 35vw;
+  height: 35vw;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, rgba(168, 85, 247, 0) 70%);
+  border-radius: 50%;
+  filter: blur(60px);
+  z-index: -1;
+  animation: liquid-float-reverse 18s infinite alternate ease-in-out;
+  opacity: 0.6;
+}
+
+@keyframes liquid-float {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(10%, -10%) scale(1.1);
+  }
+}
+
+@keyframes liquid-float-reverse {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(-10%, 10%) scale(1.15);
+  }
+}
+
+/* Liquid glass specific utilities */
+[data-theme-style="liquid-glass"] .glass {
+  /* For smaller elements */
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme-style="liquid-glass"] .pipboy-border {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+}
+
+[data-theme-style="liquid-glass"] .glow-text {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+[data-theme-style="liquid-glass"] .glow-primary {
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+}
+
+[data-theme-style="liquid-glass"] .animate-shimmer {
+  display: none;
+}
+
+/* Modern Scrollbar for Liquid */
+[data-theme-style="liquid-glass"] ::-webkit-scrollbar {
+  width: 8px;
+}
+
+[data-theme-style="liquid-glass"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+[data-theme-style="liquid-glass"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Make sure text is readable */
+[data-theme-style="liquid-glass"] h1,
+[data-theme-style="liquid-glass"] h2,
+[data-theme-style="liquid-glass"] h3 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Buttons in Liquid Glass */
+[data-theme-style="liquid-glass"] button {
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+[data-theme-style="liquid-glass"] button:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+}
+
+/* Hover lift for interactive cards */
+[data-theme-style="liquid-glass"] .hover-lift:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+
+/* ─── Animations Keyframes ─── */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.1;
+  }
+
+  100% {
+    transform: scale(0.9);
+    opacity: 0.4;
+  }
+}
+
+@keyframes terminal-blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes screen-flicker {
+  0% {
+    opacity: 1;
+  }
+
+  92% {
+    opacity: 1;
+  }
+
+  93% {
+    opacity: 0.8;
+  }
+
+  94% {
+    opacity: 1;
+  }
+
+  96% {
+    opacity: 0.9;
+  }
+
+  97% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 3s ease-in-out infinite;
+}
+
+@keyframes cosmic-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.7);
+  }
+
+  70% {
+    transform: scale(1.3);
+    opacity: 0;
+    box-shadow: 0 0 0 60px hsl(var(--primary) / 0);
+  }
+
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes cosmic-shockwave {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    border-width: 2px;
+  }
+
+  100% {
+    transform: scale(2);
+    opacity: 0;
+    border-width: 0px;
+  }
+}
+
+.animate-cosmic-pulse {
+  animation: cosmic-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-cosmic-shockwave {
+  animation: cosmic-shockwave 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px) rotate(-5deg);
+  }
+
+  75% {
+    transform: translateX(4px) rotate(5deg);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out infinite;
+}
+
+.animate-bounce-slow {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes shake-hard {
+
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  25% {
+    transform: translate(-3px, 3px) rotate(-3deg);
+  }
+
+  50% {
+    transform: translate(3px, -3px) rotate(3deg);
+  }
+
+  75% {
+    transform: translate(-3px, -3px) rotate(-3deg);
+  }
+}
+
+.animate-shake-hard {
+  animation: shake-hard 0.3s ease-in-out;
+}
+
+/* ─── Atmospheric Effects ─── */
+
+/* Subtle noise texture overlay for modern themes */
+[data-theme-style="modern"] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Subtle radial glow behind content for modern themes */
+[data-theme-style="modern"] #root::before {
+  content: '';
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60vw;
+  height: 60vh;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, hsl(var(--primary) / 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Enhanced glass panel for modern */
+[data-theme-style="modern"] .glass-panel {
+  background: hsl(var(--card) / 0.6);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid hsl(var(--border) / 0.4);
+  box-shadow: 0 1px 3px hsl(var(--background) / 0.3), inset 0 1px 0 hsl(var(--foreground) / 0.03);
+}
+
+/* Smooth page transitions */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Enhanced scrollbar for modern theme */
+[data-theme-style="modern"] ::-webkit-scrollbar {
+  width: 8px;
+}
+
+[data-theme-style="modern"] ::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.15);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+[data-theme-style="modern"] ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.3);
+  background-clip: content-box;
+}
+
+/* Hover lift for interactive cards */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px hsl(var(--background) / 0.4);
+}
+
+/* ─── Celebration Effects ─── */
+@keyframes celebration-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
+  }
+
+  50% {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.5), 0 0 80px hsl(var(--primary) / 0.2);
+  }
+}
+
+@keyframes success-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+    border-width: 4px;
+  }
+
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+    border-width: 0px;
+  }
+}
+
+@keyframes counter-tick {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateY(-4px);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  70% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-celebration-glow {
+  animation: celebration-glow 1.5s ease-in-out;
+}
+
+.animate-success-ring {
+  animation: success-ring 0.8s ease-out forwards;
+}
+
+.animate-counter-tick {
+  animation: counter-tick 0.3s ease-out;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-pop-in {
+  animation: pop-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Theme switch transition */
+body {
+  transition: background-color 0.4s ease, color 0.3s ease;
+}
+
+/* Smooth SVG transitions */
+svg circle {
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Skeleton shimmer for loading states */
+.skeleton {
+  background: linear-gradient(90deg, hsl(var(--muted)) 0%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius);
+}
+
+/* Focus ring animation */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  transition: outline-offset 0.2s ease;
+}

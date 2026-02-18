@@ -1,0 +1,57 @@
+{
+  "name": "deepwork",
+  "version": "1.0.0",
+  "description": "DeepWork - A free offline desktop Pomodoro app with advanced productivity tools",
+  "main": "dist-electron/main.js",
+  "author": "Youssef",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build && electron-builder",
+    "preview": "vite preview",
+    "electron:dev": "vite build && electron .",
+    "test": "vitest run"
+  },
+  "build": {
+    "appId": "com.antigravity.deepwork",
+    "productName": "DeepWork",
+    "win": {
+      "target": "nsis"
+    },
+    "directories": {
+      "output": "dist-electron_installer"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ]
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.344.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.0",
+    "recharts": "^2.12.0",
+    "uuid": "^9.0.0",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/uuid": "^9.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.17",
+    "electron": "^28.2.0",
+    "electron-builder": "^24.9.0",
+    "happy-dom": "^20.6.1",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.0",
+    "vite": "^5.1.0",
+    "vite-plugin-electron": "^0.28.0",
+    "vite-plugin-electron-renderer": "^0.14.0",
+    "vitest": "^4.0.18"
+  }
+}
