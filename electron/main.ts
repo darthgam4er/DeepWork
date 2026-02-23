@@ -23,6 +23,7 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
             nodeIntegration: false,
+            backgroundThrottling: false,
         },
         icon: path.join(process.env.VITE_PUBLIC!, 'icon.png'),
     })
@@ -38,6 +39,9 @@ function createWindow() {
     })
     ipcMain.on('window:close', () => win?.hide()) // hide to tray
     ipcMain.on('window:focus', () => {
+        // Don't bring main window to front if mini mode is active
+        if (miniWin && !miniWin.isDestroyed()) return
+
         if (win && !win.isDestroyed()) {
             if (win.isMinimized()) win.restore()
             win.show()
@@ -66,8 +70,8 @@ function createWindow() {
             return
         }
         miniWin = new BrowserWindow({
-            width: 300,
-            height: 120,
+            width: 280,
+            height: 80,
             frame: false,
             transparent: true,
             alwaysOnTop: true,

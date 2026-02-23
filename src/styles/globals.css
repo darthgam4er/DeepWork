@@ -327,6 +327,36 @@ textarea {
   box-shadow: 3px 3px 0 hsl(var(--border));
 }
 
+/* Force readable font for numbers and data values in Deadpool */
+[data-theme-style="deadpool"] .tabular-nums,
+[data-theme-style="deadpool"] .font-mono,
+[data-theme-style="deadpool"] [class*="tracking-tight"] {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-style: normal;
+  letter-spacing: 0.01em;
+}
+
+/* Stat cards get comic-panel styling in Deadpool */
+[data-theme-style="deadpool"] .card-panel {
+  background: hsl(var(--card));
+  border: 2.5px solid hsl(var(--border));
+  box-shadow: 4px 4px 0 hsl(var(--primary) / 0.15);
+  border-radius: 6px;
+  transform: rotate(-0.3deg);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+[data-theme-style="deadpool"] .card-panel:hover {
+  transform: rotate(0.5deg) translateY(-2px) !important;
+  box-shadow: 6px 6px 0 hsl(var(--primary) / 0.3);
+}
+
+/* Deadpool disables retro CRT effects */
+[data-theme-style="deadpool"] body::after,
+[data-theme-style="deadpool"] body::before {
+  display: none;
+}
+
 
 /* =========================================
    LIQUID GLASS THEME STYLES

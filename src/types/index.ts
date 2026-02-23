@@ -46,6 +46,7 @@ export interface TimerState {
     remaining: number          // seconds remaining
     totalDuration: number      // seconds
     sessionCount: number       // completed work sessions in current cycle
+    lastTick?: number          // timestamp of last tick for drift compensation
 }
 
 export interface ThemeColors {
@@ -80,14 +81,48 @@ export interface AppTheme {
     isBuiltIn: boolean
 }
 
+export interface CosmeticItem {
+    id: string
+    name: string
+    type: 'visor' | 'skin' | 'background' | 'head'
+    price: number
+    description: string
+}
+
+export interface Mission {
+    id: string
+    type: 'focus_time' | 'task_completion' | 'interact'
+    target: number
+    progress: number
+    reward: number
+    completed: boolean
+    title: string
+    description: string
+}
+
+export interface PetState {
+    name: string
+    level: number
+    xp: number
+    totalXp: number // Next level requirement
+    animState: 'idle' | 'sleeping' | 'focusing' | 'happy' | 'sad' | 'low-power' | 'celebration'
+    lastCompletedSessionAt?: string
+    credits: number
+    ownedItems: string[]
+    equippedItems: Record<string, string> // e.g. { visor: 'visor_cyber', skin: 'skin_neon' }
+}
+
 export interface AppData {
     settings: Settings
     tasks: Task[]
     sessions: Session[]
     themes: AppTheme[]
-    timer: TimerState // Persist timer state
+    timer: TimerState
     activeTaskId: string | null
     schedule: ScheduleEntry[]
+    pet: PetState // Virtual companion
+    dailyMissions: Mission[]
+    lastMissionReset: string
 }
 
 export interface ScheduleEntry {
@@ -124,6 +159,7 @@ export interface MiniTimerState {
     totalDuration: number
     status: TimerStatus
     mode: TimerMode
+    lastTick?: number
 }
 
 declare global {

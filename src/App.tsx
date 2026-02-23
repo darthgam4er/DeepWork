@@ -19,7 +19,7 @@ type Page = 'dashboard' | 'timer' | 'tasks' | 'analytics' | 'themes' | 'settings
 export default function App() {
     const [currentPage, setCurrentPage] = useState<Page>('dashboard')
     const _hydrate = useAppStore((s) => s._hydrate)
-    const settings = useAppStore((s) => s.settings)
+    const debugSpeed = useAppStore((s) => s.settings.debugSpeed)
     const timer = useAppStore((s) => s.timer)
     const tick = useAppStore((s) => s.tick)
     const completeTimer = useAppStore((s) => s.completeTimer)
@@ -31,13 +31,15 @@ export default function App() {
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null
         if (timer.status === 'running') {
-            const tickRate = settings.debugSpeed ? 100 : 1000
-            interval = setInterval(() => tick(), tickRate)
+            const tickRate = debugSpeed ? 100 : 1000
+            interval = setInterval(() => {
+                tick()
+            }, tickRate)
         }
         return () => {
             if (interval) clearInterval(interval)
         }
-    }, [timer.status])
+    }, [timer.status, debugSpeed, tick])
 
     // Handle completion
     useEffect(() => {

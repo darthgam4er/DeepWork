@@ -58,6 +58,7 @@ describe('useAppStore Timer Logic', () => {
     it('ticks down correctly', () => {
         const store = useAppStore.getState()
         store.startTimer()
+        vi.advanceTimersByTime(1000)
         store.tick()
         expect(useAppStore.getState().timer.remaining).toBe(25 * 60 - 1)
     })
@@ -117,6 +118,7 @@ describe('useAppStore Timer Logic', () => {
         const store = useAppStore.getState()
 
         store.startTimer()
+        vi.advanceTimersByTime(1000)
         store.tick()
 
         const raw = localStorage.getItem('deepwork_data')

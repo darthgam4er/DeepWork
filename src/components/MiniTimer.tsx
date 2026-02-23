@@ -2,15 +2,16 @@ import { useEffect, useState, useRef } from 'react'
 import type { MiniTimerState } from '@/types'
 
 function formatTime(seconds: number): string {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
+    const rounded = Math.ceil(seconds)
+    const mins = Math.floor(rounded / 60)
+    const secs = rounded % 60
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
-const modeLabels: Record<string, string> = {
-    work: 'Focus',
-    shortBreak: 'Break',
-    longBreak: 'Long Break',
+const modeConfig: Record<string, { label: string; color: string; glow: string; bg: string }> = {
+    work: { label: 'FOCUS', color: '#6366f1', glow: 'rgba(99,102,241,0.4)', bg: 'rgba(99,102,241,0.08)' },
+    shortBreak: { label: 'BREAK', color: '#22c55e', glow: 'rgba(34,197,94,0.4)', bg: 'rgba(34,197,94,0.08)' },
+    longBreak: { label: 'REST', color: '#a855f7', glow: 'rgba(168,85,247,0.4)', bg: 'rgba(168,85,247,0.08)' },
 }
 
 export function MiniTimer() {
@@ -20,6 +21,7 @@ export function MiniTimer() {
         status: 'idle',
         mode: 'work',
     })
+    const [hovered, setHovered] = useState(false)
     const dragging = useRef(false)
 
     useEffect(() => {
@@ -30,27 +32,30 @@ export function MiniTimer() {
     const send = (action: string) => window.electronAPI?.sendTimerControl(action)
 
     const progress = state.totalDuration > 0 ? 1 - state.remaining / state.totalDuration : 0
-    const circumference = 2 * Math.PI * 22
-    const dashOffset = circumference * (1 - progress)
+    const cfg = modeConfig[state.mode] || modeConfig.work
+    const isRunning = state.status === 'running'
+    const isIdle = state.status === 'idle'
 
-    const modeColor = state.mode === 'work' ? '#3b82f6' : state.mode === 'shortBreak' ? '#22c55e' : '#a855f7'
+    // Progress bar width
+    const progressPercent = `${Math.round(progress * 100)}%`
 
-    // Enable click-through on transparent areas, disable on the widget itself
+    // Click-through for transparent areas
     const handleMouseEnter = () => {
         window.electronAPI?.setIgnoreMouseEvents(false)
+        setHovered(true)
     }
     const handleMouseLeave = () => {
+        setHovered(false)
         if (!dragging.current) {
             window.electronAPI?.setIgnoreMouseEvents(true, { forward: true })
         }
     }
 
-    // Start with click-through enabled so transparent areas pass clicks
     useEffect(() => {
         window.electronAPI?.setIgnoreMouseEvents(true, { forward: true })
     }, [])
 
-    // IPC-based dragging using absolute screen position
+    // IPC-based dragging
     const handleMouseDown = (e: React.MouseEvent) => {
         if ((e.target as HTMLElement).closest('button')) return
         dragging.current = true
@@ -82,106 +87,127 @@ export function MiniTimer() {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             style={{
-                width: 300,
-                height: 120,
-                borderRadius: 20,
-                background: 'rgba(15, 15, 25, 0.85)',
-                backdropFilter: 'blur(24px) saturate(1.4)',
-                WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
+                width: 280,
+                height: 80,
+                borderRadius: 16,
+                background: 'rgba(12, 12, 20, 0.92)',
+                backdropFilter: 'blur(30px) saturate(1.6)',
+                WebkitBackdropFilter: 'blur(30px) saturate(1.6)',
+                border: `1px solid ${hovered ? `${cfg.color}44` : 'rgba(255,255,255,0.06)'}`,
+                boxShadow: isRunning
+                    ? `0 4px 24px rgba(0,0,0,0.5), 0 0 40px ${cfg.glow}, inset 0 1px 0 rgba(255,255,255,0.04)`
+                    : '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 16,
-                padding: '0 20px',
+                gap: 14,
+                padding: '0 16px',
                 cursor: 'grab',
-                userSelect: 'none',
+                userSelect: 'none' as const,
                 fontFamily: "'Space Grotesk', system-ui, sans-serif",
                 color: '#f0f0f0',
                 overflow: 'hidden',
-                position: 'relative',
+                position: 'relative' as const,
+                transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
             }}
         >
-            {/* Progress Ring */}
-            <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
-                <svg width="56" height="56" viewBox="0 0 56 56" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
-                    <circle
-                        cx="28" cy="28" r="22"
-                        fill="none"
-                        stroke={modeColor}
-                        strokeWidth="4"
-                        strokeLinecap="round"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={dashOffset}
-                        style={{ transition: 'stroke-dashoffset 0.8s ease' }}
-                    />
-                </svg>
+            {/* Animated progress bar at the bottom */}
+            <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                height: 3,
+                width: progressPercent,
+                background: `linear-gradient(90deg, ${cfg.color}, ${cfg.color}99)`,
+                borderRadius: '0 2px 0 0',
+                transition: 'width 0.8s ease',
+                boxShadow: `0 0 8px ${cfg.glow}`,
+            }} />
+
+            {/* Mode indicator dot */}
+            <div style={{
+                position: 'absolute',
+                top: 8,
+                left: 16,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+            }}>
                 <div style={{
-                    position: 'absolute', inset: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 5,
+                    height: 5,
+                    borderRadius: '50%',
+                    background: cfg.color,
+                    boxShadow: isRunning ? `0 0 6px ${cfg.glow}` : 'none',
+                    animation: isRunning ? 'mini-pulse 2s ease-in-out infinite' : 'none',
+                }} />
+                <span style={{
+                    fontSize: 8,
+                    fontWeight: 700,
+                    letterSpacing: '0.15em',
+                    color: cfg.color,
+                    opacity: 0.9,
                 }}>
-                    {state.status === 'running' && (
-                        <div style={{
-                            width: 8, height: 8, borderRadius: '50%',
-                            background: modeColor,
-                            boxShadow: `0 0 8px ${modeColor}`,
-                            animation: 'mini-pulse 2s ease-in-out infinite',
-                        }} />
-                    )}
-                    {state.status !== 'running' && (
-                        <div style={{
-                            width: 6, height: 6, borderRadius: '50%',
-                            background: 'rgba(255,255,255,0.2)',
-                        }} />
-                    )}
-                </div>
+                    {cfg.label}
+                </span>
             </div>
 
-            {/* Time & Mode */}
-            <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Timer display */}
+            <div style={{ flex: 1, paddingTop: 8 }}>
                 <div style={{
-                    fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em',
-                    lineHeight: 1, fontVariantNumeric: 'tabular-nums',
+                    fontSize: 32,
+                    fontWeight: 700,
+                    letterSpacing: '-0.03em',
+                    lineHeight: 1,
+                    fontVariantNumeric: 'tabular-nums',
+                    color: '#ffffff',
+                    textShadow: isRunning ? `0 0 20px ${cfg.glow}` : 'none',
                 }}>
                     {formatTime(state.remaining)}
-                </div>
-                <div style={{
-                    fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
-                    color: modeColor, marginTop: 4, fontWeight: 600,
-                }}>
-                    {modeLabels[state.mode] || 'Focus'}
                 </div>
             </div>
 
             {/* Controls */}
-            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: 5, flexShrink: 0, paddingTop: 6 }}>
                 {/* Play/Pause */}
                 <button
                     onClick={() => {
-                        if (state.status === 'idle') send('start')
-                        else if (state.status === 'running') send('pause')
+                        if (isIdle) send('start')
+                        else if (isRunning) send('pause')
                         else send('resume')
                     }}
                     style={{
-                        width: 32, height: 32, borderRadius: 10,
-                        background: `${modeColor}22`, border: `1px solid ${modeColor}44`,
-                        color: modeColor, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        transition: 'all 0.15s ease',
+                        width: 34,
+                        height: 34,
+                        borderRadius: 10,
+                        background: `${cfg.color}25`,
+                        border: `1px solid ${cfg.color}55`,
+                        color: cfg.color,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = `${modeColor}44` }}
-                    onMouseLeave={e => { e.currentTarget.style.background = `${modeColor}22` }}
-                    title={state.status === 'running' ? 'Pause' : 'Start'}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.background = `${cfg.color}30`
+                        e.currentTarget.style.transform = 'scale(1.08)'
+                        e.currentTarget.style.boxShadow = `0 0 12px ${cfg.glow}`
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.background = `${cfg.color}15`
+                        e.currentTarget.style.transform = 'scale(1)'
+                        e.currentTarget.style.boxShadow = 'none'
+                    }}
+                    title={isRunning ? 'Pause' : 'Start'}
                 >
-                    {state.status === 'running' ? (
+                    {isRunning ? (
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-                            <rect x="1" y="1" width="3.5" height="10" rx="1" />
-                            <rect x="7.5" y="1" width="3.5" height="10" rx="1" />
+                            <rect x="1.5" y="1" width="3" height="10" rx="1" />
+                            <rect x="7.5" y="1" width="3" height="10" rx="1" />
                         </svg>
                     ) : (
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-                            <path d="M2.5 1.5L10.5 6L2.5 10.5V1.5Z" />
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+                            <path d="M3 1.5L12 7L3 12.5V1.5Z" />
                         </svg>
                     )}
                 </button>
@@ -190,14 +216,28 @@ export function MiniTimer() {
                 <button
                     onClick={() => send('skip')}
                     style={{
-                        width: 32, height: 32, borderRadius: 10,
-                        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                        color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        transition: 'all 0.15s ease',
+                        width: 34,
+                        height: 34,
+                        borderRadius: 10,
+                        background: 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        color: 'rgba(255,255,255,0.6)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.color = '#fff'
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                        e.currentTarget.style.transform = 'scale(1.08)'
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.color = 'rgba(255,255,255,0.4)'
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+                        e.currentTarget.style.transform = 'scale(1)'
+                    }}
                     title="Skip"
                 >
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
@@ -206,32 +246,51 @@ export function MiniTimer() {
                     </svg>
                 </button>
 
-                {/* Close mini */}
+                {/* Close */}
                 <button
                     onClick={() => window.electronAPI?.closeMini()}
                     style={{
-                        width: 32, height: 32, borderRadius: 10,
-                        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                        color: 'rgba(255,255,255,0.3)', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        transition: 'all 0.15s ease',
+                        width: 34,
+                        height: 34,
+                        borderRadius: 10,
+                        background: 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        color: 'rgba(255,255,255,0.5)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)' }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.color = '#ef4444'
+                        e.currentTarget.style.background = 'rgba(239,68,68,0.1)'
+                        e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)'
+                        e.currentTarget.style.transform = 'scale(1.08)'
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.color = 'rgba(255,255,255,0.25)'
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
+                        e.currentTarget.style.transform = 'scale(1)'
+                    }}
                     title="Close"
                 >
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                        <path d="M1 1L9 9M9 1L1 9" />
+                        <path d="M1.5 1.5L8.5 8.5M8.5 1.5L1.5 8.5" />
                     </svg>
                 </button>
             </div>
 
-            {/* Pulse animation keyframes */}
+            {/* Animations */}
             <style>{`
                 @keyframes mini-pulse {
                     0%, 100% { opacity: 1; transform: scale(1); }
-                    50% { opacity: 0.5; transform: scale(1.3); }
+                    50% { opacity: 0.4; transform: scale(1.5); }
                 }
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                button { outline: none; }
+                button:active { transform: scale(0.92) !important; }
             `}</style>
         </div>
     )

@@ -69,56 +69,70 @@ export function Timer() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className={cn(
-                    "flex-1 flex flex-col relative overflow-hidden",
+                    "flex-1 flex flex-col relative overflow-hidden transition-all duration-500",
                     isRetro
                         ? "border border-[hsl(var(--border))] bg-[hsl(var(--card))] pipboy-border"
-                        : "border border-[hsl(var(--border))] bg-[hsl(var(--card))] rounded-2xl"
+                        : "card-panel group hover:shadow-xl hover:shadow-black/5"
                 )}
             >
+                {/* Glow Effects */}
+                {!isRetro && (
+                    <>
+                        <div className="absolute -left-32 -top-32 w-64 h-64 rounded-full bg-primary/20 blur-[60px] opacity-40 transition-all duration-700 group-hover:opacity-60 group-hover:scale-110 pointer-events-none" />
+                        <div className="absolute -right-32 -bottom-32 w-64 h-64 rounded-full bg-primary/10 blur-[60px] opacity-30 transition-all duration-700 group-hover:opacity-50 group-hover:scale-110 pointer-events-none" />
+                    </>
+                )}
+
                 {/* Top Bar */}
-                <div className="flex items-center justify-between p-4 shrink-0">
+                <div className="flex items-center justify-between p-5 md:p-6 shrink-0 relative z-10">
                     <div className="flex items-center gap-2">
-                        {isRetro && <Radio className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />}
-                        <span className="text-xs font-medium text-[hsl(var(--muted-foreground))]">
-                            Round {sessionInCycle + (timer.mode === 'work' ? 1 : 0)} of {settings.sessionsBeforeLongBreak}
+                        {isRetro ? (
+                            <Radio className="w-4 h-4 text-primary" />
+                        ) : (
+                            <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary shadow-sm backdrop-blur-sm">
+                                <Target className="w-4 h-4 drop-shadow-sm" />
+                            </div>
+                        )}
+                        <span className="text-xs md:text-sm font-bold text-foreground tracking-tight">
+                            Round {sessionInCycle + (timer.mode === 'work' ? 1 : 0)} <span className="text-muted-foreground opacity-60 mx-1">/</span> {settings.sessionsBeforeLongBreak}
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
                         <motion.button
                             onClick={() => window.electronAPI?.openMini()}
-                            whileHover={{ scale: 1.08 }}
-                            whileTap={{ scale: 0.92 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             transition={springBouncy}
-                            className="p-2 border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors rounded-lg"
+                            className="glass-button p-2.5 rounded-xl border border-border/50 bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all shadow-sm"
                             title="Mini Mode"
                         >
-                            <PictureInPicture2 className="w-3.5 h-3.5" />
+                            <PictureInPicture2 className="w-4 h-4" />
                         </motion.button>
                     </div>
                 </div>
 
                 {/* Center: Ring + Time + Controls */}
-                <div className="flex-1 flex flex-col items-center justify-center gap-2 pb-4">
+                <div className="flex-1 flex flex-col items-center justify-center gap-2 pb-6 relative z-10">
 
                     {/* Mode Tabs */}
-                    <div className="flex p-1 bg-[hsl(var(--secondary)_/_0.5)] rounded-xl mb-4 relative">
+                    <div className="flex p-1 bg-secondary/60 backdrop-blur-md rounded-xl md:rounded-2xl mb-6 relative border border-black/5 dark:border-white/5 shadow-inner">
                         {(['work', 'shortBreak', 'longBreak'] as const).map((mode) => (
                             <button
                                 key={mode}
                                 onClick={() => timer.status === 'idle' && useAppStore.getState().setMode(mode)}
                                 disabled={timer.status !== 'idle'}
                                 className={cn(
-                                    'px-4 py-1.5 text-[11px] font-medium rounded-lg transition-all relative z-10',
+                                    'px-5 py-2 text-xs md:text-sm font-bold tracking-tight rounded-lg md:rounded-xl transition-all relative z-10',
                                     timer.mode === mode
-                                        ? 'text-[hsl(var(--foreground))]'
-                                        : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]',
+                                        ? 'text-foreground drop-shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground',
                                     timer.status !== 'idle' && 'opacity-40 cursor-not-allowed'
                                 )}
                             >
                                 {timer.mode === mode && (
                                     <motion.div
                                         layoutId="timer-mode-pill"
-                                        className="absolute inset-0 bg-[hsl(var(--background))] rounded-lg shadow-sm"
+                                        className="absolute inset-0 bg-background rounded-lg md:rounded-xl shadow-md border border-border/50"
                                         transition={springBouncy}
                                     />
                                 )}
@@ -130,20 +144,35 @@ export function Timer() {
                     </div>
 
                     {/* Timer Ring */}
-                    <div className="relative w-[280px] h-[280px] flex items-center justify-center">
-                        <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 280 280">
+                    <div className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px] flex items-center justify-center drop-shadow-2xl">
+                        <svg className="absolute inset-0 w-full h-full -rotate-90 filter drop-shadow-md" viewBox="0 0 280 280">
                             <circle
                                 cx="140" cy="140" r={ringRadius}
                                 fill="none"
                                 stroke="hsl(var(--muted))"
-                                strokeWidth={isRetro ? "2" : "8"}
+                                strokeWidth={isRetro ? "2" : "12"}
                                 className="opacity-20"
                             />
+                            {/* Glow layer for stroke */}
+                            {!isRetro && (
+                                <motion.circle
+                                    cx="140" cy="140" r={ringRadius}
+                                    fill="none"
+                                    stroke="hsl(var(--primary))"
+                                    strokeWidth="12"
+                                    strokeLinecap="round"
+                                    strokeDasharray={circumference}
+                                    strokeDashoffset={strokeDashoffset}
+                                    className="transition-all duration-1000 ease-linear opacity-30"
+                                    style={{ filter: 'blur(6px)' }}
+                                />
+                            )}
+                            {/* Real stroke */}
                             <motion.circle
                                 cx="140" cy="140" r={ringRadius}
                                 fill="none"
                                 stroke="hsl(var(--primary))"
-                                strokeWidth={isRetro ? "4" : "8"}
+                                strokeWidth={isRetro ? "4" : "12"}
                                 strokeLinecap="round"
                                 strokeDasharray={circumference}
                                 strokeDashoffset={strokeDashoffset}
@@ -157,43 +186,47 @@ export function Timer() {
                         {/* Pulse when running */}
                         {timer.status === 'running' && (
                             <div
-                                className="absolute w-[240px] h-[240px] animate-cosmic-pulse rounded-full z-0"
+                                className="absolute w-[240px] h-[240px] md:w-[280px] md:h-[280px] animate-cosmic-pulse rounded-full z-0"
                                 style={{
-                                    backgroundColor: 'hsl(var(--primary) / 0.06)',
-                                    boxShadow: '0 0 30px hsl(var(--primary) / 0.15)',
+                                    backgroundColor: 'hsl(var(--primary) / 0.08)',
+                                    boxShadow: '0 0 40px hsl(var(--primary) / 0.2)',
                                     pointerEvents: 'none'
                                 }}
                             />
                         )}
 
                         {/* Time Display */}
-                        <div className="text-center z-10">
+                        <div className="text-center z-10 flex flex-col items-center">
                             <p className={cn(
-                                "text-5xl text-[hsl(var(--foreground))] tabular-nums leading-none",
-                                isRetro ? "font-mono glow-text" : "font-bold tracking-tight"
+                                "text-6xl md:text-7xl tabular-nums leading-none",
+                                isRetro
+                                    ? "font-mono glow-text text-foreground"
+                                    : isDeadpool
+                                        ? "font-black tracking-wide text-foreground drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                                        : "font-black tracking-tighter bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent drop-shadow-sm"
                             )}>
                                 {formatTime(timer.remaining)}
                             </p>
-                            <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--primary))] mt-2 font-medium">
+                            <p className="text-xs md:text-sm uppercase tracking-[0.25em] text-primary mt-3 md:mt-4 font-bold drop-shadow-sm">
                                 {modeLabel}
                             </p>
                         </div>
                     </div>
 
                     {/* Controls */}
-                    <div className="flex items-center gap-4 mt-4">
+                    <div className="flex items-center gap-5 mt-6 md:mt-8">
                         <motion.button
                             onClick={resetTimer}
                             whileHover={{ scale: 1.1, rotate: -90 }}
                             whileTap={{ scale: 0.85 }}
                             transition={springBouncy}
                             className={cn(
-                                "p-3 border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors",
-                                isRetro ? "" : "rounded-xl"
+                                "p-3.5 xl:p-4 text-muted-foreground hover:text-foreground transition-all",
+                                isRetro ? "border border-[hsl(var(--border))] bg-[hsl(var(--secondary))]" : "glass-button rounded-2xl bg-secondary/50 border border-border/50 shadow-sm"
                             )}
                             title="Reset"
                         >
-                            <RotateCcw className="w-4 h-4" />
+                            <RotateCcw className="w-5 h-5 drop-shadow-sm" />
                         </motion.button>
 
                         <motion.button
@@ -202,25 +235,28 @@ export function Timer() {
                                 else if (timer.status === 'running') pauseTimer()
                                 else resumeTimer()
                             }}
-                            whileHover={{ scale: 1.06 }}
-                            whileTap={{ scale: 0.92 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             transition={springBouncy}
                             className={cn(
-                                "w-16 h-16 flex items-center justify-center transition-all shadow-lg",
-                                isRetro ? "border-2 border-[hsl(var(--primary))] glow-primary" : "rounded-2xl",
+                                "w-20 h-20 md:w-24 md:h-24 flex items-center justify-center transition-all shadow-xl group",
+                                isRetro ? "border-2 border-primary glow-primary shadow-[0_0_15px_hsl(var(--primary))]" : "rounded-full relative",
                                 timer.status === 'running'
-                                    ? "bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] border border-[hsl(var(--border))]"
-                                    : "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[hsl(var(--primary)_/_0.3)]"
+                                    ? "bg-secondary/40 text-foreground border border-border/50 backdrop-blur-md hover:bg-secondary/60"
+                                    : "bg-gradient-to-br from-primary to-primary/80 border border-primary/20 text-primary-foreground shadow-[0_8px_32px_-8px_rgba(var(--primary),0.5)] hover:shadow-[0_12px_40px_-8px_rgba(var(--primary),0.6)]"
                             )}
                         >
+                            {!isRetro && timer.status !== 'running' && (
+                                <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                            )}
                             <AnimatePresence mode="wait">
                                 {timer.status === 'running' ? (
-                                    <motion.div key="pause" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={springBouncy}>
-                                        <Pause className="w-6 h-6" />
+                                    <motion.div key="pause" initial={{ scale: 0, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0, rotate: 90 }} transition={springBouncy} className="relative z-10">
+                                        <Pause className="w-8 h-8 md:w-10 md:h-10 drop-shadow-sm" fill="currentColor" />
                                     </motion.div>
                                 ) : (
-                                    <motion.div key="play" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={springBouncy}>
-                                        <Play className="w-6 h-6 ml-0.5" />
+                                    <motion.div key="play" initial={{ scale: 0, rotate: 90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0, rotate: -90 }} transition={springBouncy} className="relative z-10">
+                                        <Play className="w-8 h-8 md:w-10 md:h-10 ml-1.5 drop-shadow-sm" fill="currentColor" />
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -232,12 +268,12 @@ export function Timer() {
                             whileTap={{ scale: 0.85 }}
                             transition={springBouncy}
                             className={cn(
-                                "p-3 border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors",
-                                isRetro ? "" : "rounded-xl"
+                                "p-3.5 xl:p-4 text-muted-foreground hover:text-foreground transition-all",
+                                isRetro ? "border border-[hsl(var(--border))] bg-[hsl(var(--secondary))]" : "glass-button rounded-2xl bg-secondary/50 border border-border/50 shadow-sm"
                             )}
                             title="Skip"
                         >
-                            <SkipForward className="w-4 h-4" />
+                            <SkipForward className="w-5 h-5 drop-shadow-sm" />
                         </motion.button>
                     </div>
 
@@ -277,20 +313,23 @@ export function Timer() {
             </motion.section>
 
             {/* Sidebar */}
-            <aside className="hidden lg:flex flex-col gap-3 w-[260px] shrink-0">
+            <aside className="hidden lg:flex flex-col gap-4 w-[280px] shrink-0">
                 {/* Active Task Card */}
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                     className={cn(
-                        "flex-1 border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 flex flex-col min-h-0",
-                        isRetro ? "pipboy-border" : "rounded-2xl"
+                        "flex-1 p-6 flex flex-col min-h-0 transition-all duration-500 hover:shadow-xl",
+                        isRetro ? "pipboy-border bg-[hsl(var(--card))]" : "card-panel relative overflow-hidden"
                     )}
                 >
-                    <div className="flex items-center gap-2 mb-4 shrink-0">
-                        <Target className="w-4 h-4 text-[hsl(var(--primary))]" />
-                        <h3 className="text-xs font-semibold text-[hsl(var(--foreground))]">
+                    {!isRetro && <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/10 blur-[40px] opacity-50 pointer-events-none" />}
+                    <div className="flex items-center gap-3 mb-6 shrink-0 relative z-10">
+                        <div className={cn("p-1.5 rounded-lg text-primary shadow-sm backdrop-blur-sm", isRetro ? "" : "bg-primary/10 border border-primary/20")}>
+                            <Target className="w-4 h-4 drop-shadow-sm" />
+                        </div>
+                        <h3 className="text-sm font-bold text-foreground tracking-tight">
                             {isRetro ? 'ACTIVE QUEST' : 'Current Task'}
                         </h3>
                     </div>
@@ -341,13 +380,17 @@ export function Timer() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                     className={cn(
-                        "border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shrink-0",
-                        isRetro ? "pipboy-border" : "rounded-2xl"
+                        "p-6 shrink-0 transition-all duration-500 hover:shadow-xl",
+                        isRetro ? "pipboy-border bg-[hsl(var(--card))]" : "card-panel relative overflow-hidden"
                     )}
                 >
-                    <div className="flex items-center gap-2 mb-3">
-                        <BrainCircuit className="w-4 h-4 text-[hsl(var(--primary))]" />
-                        <h3 className="text-xs font-semibold text-[hsl(var(--foreground))]">Cycle Progress</h3>
+                    {!isRetro && <div className="absolute bottom-0 right-0 w-24 h-24 rounded-full bg-blue-500/10 blur-[30px] opacity-40 pointer-events-none" />}
+
+                    <div className="flex items-center gap-3 mb-4 relative z-10">
+                        <div className={cn("p-1.5 rounded-lg text-blue-500 shadow-sm backdrop-blur-sm", isRetro ? "" : "bg-blue-500/10 border border-blue-500/20")}>
+                            <BrainCircuit className="w-4 h-4 drop-shadow-sm" />
+                        </div>
+                        <h3 className="text-sm font-bold text-foreground tracking-tight">Cycle Progress</h3>
                     </div>
 
                     <div className="flex items-baseline gap-1 mb-3">

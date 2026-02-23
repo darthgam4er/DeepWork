@@ -1,10 +1,10 @@
 /* ─── Main Application Store (Zustand) ─── */
 import { create } from 'zustand'
 import { v4 as uuid } from 'uuid'
-import { Settings, Task, Session, AppTheme, TimerState, TimerMode, ScheduleEntry } from '@/types'
+import { Settings, Task, Session, AppTheme, TimerState, TimerMode, ScheduleEntry, PetState, Mission, CosmeticItem } from '@/types'
 import { loadDataAsync, saveDataAsync } from '@/lib/storage'
 import { defaultSettings, builtInThemes } from '@/lib/themes'
-import { playWorkComplete, playBreakComplete, playTimerStart, playTimerPause, playTimerSkip, playDeadpoolWorkComplete, playDeadpoolBreakComplete, warmupAudio } from '@/lib/sounds'
+import { playThemeWorkComplete, playThemeBreakComplete, playTimerStart, playTimerPause, playTimerSkip, warmupAudio } from '@/lib/sounds'
 
 interface AppStore {
     // ─── Settings ───
@@ -50,6 +50,24 @@ interface AppStore {
     schedule: ScheduleEntry[]
     updateScheduleEntry: (entry: ScheduleEntry) => void
 
+    // ─── Pet Configuration ───
+    pet: PetState
+    addPetXp: (amount: number) => void
+    setPetAnimState: (state: PetState['animState']) => void
+
+    // ─── Daily Missions ───
+    dailyMissions: Mission[]
+    lastMissionReset: string
+    checkDailyMissions: () => void
+    updateMissionProgress: (type: Mission['type'], amount: number) => void
+    claimMissionReward: (missionId: string) => void
+
+    // ─── Shop & Credits ───
+    addCredits: (amount: number) => void
+    buyItem: (item: CosmeticItem) => void
+    equipItem: (item: CosmeticItem) => void
+    unequipItem: (slot: string) => void
+
     // ─── Persistence ───
     _persist: () => void
     _hydrate: () => void
@@ -67,6 +85,17 @@ function getDuration(mode: TimerMode, settings: Settings): number {
     }
 }
 
+const generateDailyMissions = (): Mission[] => {
+    return [
+        { id: uuid(), type: 'focus_time', target: 60, progress: 0, reward: 50, completed: false, title: "Deep Focus", description: "Focus for 60 minutes" },
+        { id: uuid(), type: 'task_completion', target: 3, progress: 0, reward: 50, completed: false, title: "Task Master", description: "Complete 3 tasks" },
+        { id: uuid(), type: 'interact', target: 5, progress: 0, reward: 25, completed: false, title: "Social Fox", description: "Interact with Nova 5 times" },
+    ]
+}
+
+// Throttle tracking for tick persistence (avoids IPC flooding)
+let _lastTickPersist = 0
+
 export const useAppStore = create<AppStore>((set, get) => ({
     // ─── Initial State ───
     settings: { ...defaultSettings },
@@ -80,9 +109,23 @@ export const useAppStore = create<AppStore>((set, get) => ({
         remaining: defaultSettings.workDuration * 60,
         totalDuration: defaultSettings.workDuration * 60,
         sessionCount: 0,
+        lastTick: undefined,
     },
     activeTaskId: null,
     completionPopup: null,
+    pet: {
+        name: 'Nova',
+        level: 1,
+        xp: 0,
+        totalXp: 100,
+        animState: 'idle',
+        lastCompletedSessionAt: new Date().toISOString(),
+        credits: 0,
+        ownedItems: [],
+        equippedItems: {}
+    },
+    dailyMissions: [],
+    lastMissionReset: new Date().toISOString(),
 
     // ─── Settings ───
     updateSettings: (partial) => {
@@ -94,6 +137,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
                     ...s.timer,
                     remaining: getDuration(s.timer.mode, newSettings),
                     totalDuration: getDuration(s.timer.mode, newSettings),
+                    lastTick: undefined,
                 }
                 : s.timer
             return { settings: newSettings, timer }
@@ -136,6 +180,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
             ),
             activeTaskId: s.activeTaskId === id ? null : s.activeTaskId,
         }))
+        get().addPetXp(50) // Bonus XP for task completion
+        get().updateMissionProgress('task_completion', 1)
         get()._persist()
     },
 
@@ -208,20 +254,28 @@ export const useAppStore = create<AppStore>((set, get) => ({
                 remaining: duration,
                 totalDuration: duration,
                 sessionCount: timer.sessionCount,
+                lastTick: Date.now(),
             },
+            pet: { ...get().pet, animState: 'focusing' } // Pet enters focus mode
         })
         get()._persist()
     },
 
     pauseTimer: () => {
         if (get().settings.soundEnabled) playTimerPause()
-        set((s) => ({ timer: { ...s.timer, status: 'paused' } }))
+        set((s) => ({
+            timer: { ...s.timer, status: 'paused', lastTick: undefined },
+            pet: { ...s.pet, animState: 'sleeping' } // Pet sleeps when paused
+        }))
         get()._persist()
     },
 
     resumeTimer: () => {
         if (get().settings.soundEnabled) playTimerStart()
-        set((s) => ({ timer: { ...s.timer, status: 'running' } }))
+        set((s) => ({
+            timer: { ...s.timer, status: 'running', lastTick: Date.now() },
+            pet: { ...s.pet, animState: 'focusing' } // Pet back to focusing
+        }))
         get()._persist()
     },
 
@@ -235,6 +289,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
                 remaining: duration,
                 totalDuration: duration,
                 sessionCount: timer.sessionCount,
+                lastTick: undefined,
             },
         })
         get()._persist()
@@ -243,14 +298,24 @@ export const useAppStore = create<AppStore>((set, get) => ({
     tick: () => {
         set((s) => {
             if (s.timer.status !== 'running') return s
-            const remaining = s.timer.remaining - 1
+            const now = Date.now()
+            // If we don't have a lastTick for some reason, assume exactly 1 sec has passed
+            const deltaMs = s.timer.lastTick ? now - s.timer.lastTick : 1000
+            const deltaSecs = deltaMs / 1000
+
+            const remaining = Math.max(0, s.timer.remaining - deltaSecs)
 
             if (remaining <= 0) {
-                return { timer: { ...s.timer, remaining: 0, status: 'completed' } }
+                return { timer: { ...s.timer, remaining: 0, status: 'completed', lastTick: undefined } }
             }
-            return { timer: { ...s.timer, remaining } }
+            return { timer: { ...s.timer, remaining, lastTick: now } }
         })
-        get()._persist()
+        // Throttle persistence — only save every 5s during ticks to avoid IPC flooding
+        const now = Date.now()
+        if (now - _lastTickPersist > 5000) {
+            _lastTickPersist = now
+            get()._persist()
+        }
     },
 
     completeTimer: () => {
@@ -267,23 +332,32 @@ export const useAppStore = create<AppStore>((set, get) => ({
             completed: true,
         })
 
-        // Increment task pomodoro if this was a work session
-        if (timer.mode === 'work' && activeTaskId) {
-            incrementTaskPomodoro(activeTaskId)
+        // Increment task pomodoro and evaluate rewards if this was a work session
+        if (timer.mode === 'work') {
+            if (activeTaskId) incrementTaskPomodoro(activeTaskId)
+
+            const focusMins = Math.floor(timer.totalDuration / 60)
+            get().addPetXp(25) // XP for completing a work session
+            get().addCredits(focusMins) // 1 credit per minute
+            get().updateMissionProgress('focus_time', focusMins)
+
+            set((s) => ({ pet: { ...s.pet, animState: 'happy', lastCompletedSessionAt: new Date().toISOString() } })) // Pet celebrates!
+        } else {
+            set((s) => ({ pet: { ...s.pet, animState: 'idle', lastCompletedSessionAt: new Date().toISOString() } })) // Pet rests after break
         }
 
         // Premium sound + notification
         if (settings.soundEnabled) {
             const activeTheme = get().themes.find(t => t.id === settings.selectedThemeId)
-            const isDeadpool = activeTheme?.style === 'deadpool'
+            const themeStyle = activeTheme?.style
             if (timer.mode === 'work') {
-                isDeadpool ? playDeadpoolWorkComplete() : playWorkComplete()
+                playThemeWorkComplete(themeStyle)
             } else {
-                isDeadpool ? playDeadpoolBreakComplete() : playBreakComplete()
+                playThemeBreakComplete(themeStyle)
             }
         }
 
-        // Show in-app completion popup and bring window to front
+        // Show in-app completion popup and bring window to front (respects mini mode)
         if (settings.notificationsEnabled) {
             set({ completionPopup: { visible: true, mode: timer.mode, duration: timer.totalDuration } })
             window.electronAPI?.focusWindow()
@@ -310,6 +384,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
                 remaining: nextDuration,
                 totalDuration: nextDuration,
                 sessionCount: nextCount,
+                lastTick: autoStart ? Date.now() : undefined,
             },
         })
         get()._persist()
@@ -337,6 +412,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
                 remaining: nextDuration,
                 totalDuration: nextDuration,
                 sessionCount: nextCount,
+                lastTick: autoStart ? Date.now() : undefined,
             },
         })
         get()._persist()
@@ -352,6 +428,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
                 remaining: duration,
                 totalDuration: duration,
                 sessionCount: timer.sessionCount,
+                lastTick: undefined,
             },
         })
         get()._persist()
@@ -378,13 +455,122 @@ export const useAppStore = create<AppStore>((set, get) => ({
         return { schedule: newSchedule }
     }),
 
+    // ─── Pet Configuration ───
+    addPetXp: (amount) => set((s) => {
+        let { level, xp, totalXp } = s.pet
+        xp += amount
+        // Level up logic (e.g. 100 for lvl 2, 150 for lvl 3, etc.)
+        while (xp >= totalXp) {
+            xp -= totalXp
+            level += 1
+            totalXp = Math.floor(totalXp * 1.5) // Scaling difficulty
+        }
+        return { pet: { ...s.pet, level, xp, totalXp } }
+    }),
+
+    setPetAnimState: (state) => set((s) => ({ pet: { ...s.pet, animState: state } })),
+
+    // ─── Daily Missions ───
+    checkDailyMissions: () => {
+        const { lastMissionReset, dailyMissions } = get()
+        const now = new Date()
+        const lastReset = new Date(lastMissionReset)
+
+        // Reset if date changes or empty
+        if (
+            now.getDate() !== lastReset.getDate() ||
+            now.getMonth() !== lastReset.getMonth() ||
+            now.getFullYear() !== lastReset.getFullYear() ||
+            dailyMissions.length === 0
+        ) {
+            set({ dailyMissions: generateDailyMissions(), lastMissionReset: now.toISOString() })
+            get()._persist()
+        }
+    },
+
+    updateMissionProgress: (type, amount) => {
+        set((s) => ({
+            dailyMissions: s.dailyMissions.map((m) => {
+                if (m.type === type && !m.completed) {
+                    const newProgress = Math.min(m.target, m.progress + amount)
+                    return { ...m, progress: newProgress }
+                }
+                return m
+            })
+        }))
+        get()._persist()
+    },
+
+    claimMissionReward: (missionId) => {
+        set((s) => {
+            const mission = s.dailyMissions.find(m => m.id === missionId)
+            if (mission && mission.progress >= mission.target && !mission.completed) {
+                return {
+                    dailyMissions: s.dailyMissions.map(m => m.id === missionId ? { ...m, completed: true } : m),
+                    pet: { ...s.pet, credits: s.pet.credits + mission.reward, animState: 'celebration' }
+                }
+            }
+            return s
+        })
+        get()._persist()
+    },
+
+    // ─── Credits & Shop ───
+    addCredits: (amount) => {
+        set((s) => ({ pet: { ...s.pet, credits: s.pet.credits + amount } }))
+        get()._persist()
+    },
+
+    buyItem: (item) => {
+        set((s) => {
+            if (s.pet.credits >= item.price && !s.pet.ownedItems.includes(item.id)) {
+                return {
+                    pet: {
+                        ...s.pet,
+                        credits: s.pet.credits - item.price,
+                        ownedItems: [...s.pet.ownedItems, item.id],
+                        animState: 'happy'
+                    }
+                }
+            }
+            return s
+        })
+        get()._persist()
+    },
+
+    equipItem: (item) => {
+        set((s) => {
+            if (s.pet.ownedItems.includes(item.id)) {
+                return {
+                    pet: {
+                        ...s.pet,
+                        equippedItems: { ...s.pet.equippedItems, [item.type]: item.id }
+                    }
+                }
+            }
+            return s
+        })
+        get()._persist()
+    },
+
+    unequipItem: (slot) => {
+        set((s) => {
+            const newEquipped = { ...s.pet.equippedItems }
+            delete newEquipped[slot]
+            return {
+                pet: { ...s.pet, equippedItems: newEquipped }
+            }
+        })
+        get()._persist()
+    },
+
     // ─── Completion Popup ───
     dismissCompletionPopup: () => set({ completionPopup: null }),
 
     // ─── Persistence ───
     _persist: () => {
-        const { settings, tasks, sessions, themes, timer, activeTaskId, schedule } = get()
-        saveDataAsync({ settings, tasks, sessions, themes, timer, activeTaskId, schedule })
+        const { settings, tasks, sessions, themes, timer, activeTaskId, schedule, pet, dailyMissions, lastMissionReset } = get()
+        saveDataAsync({ settings, tasks, sessions, themes, timer, activeTaskId, schedule, pet, dailyMissions, lastMissionReset })
     },
 
     _hydrate: async () => {
@@ -392,6 +578,25 @@ export const useAppStore = create<AppStore>((set, get) => ({
         const restoredActiveTaskId = data.activeTaskId && data.tasks.some((task) => task.id === data.activeTaskId)
             ? data.activeTaskId
             : null
+
+        // Calculate initial pet state, check for low power (>24h since last session)
+        let initialPetState: PetState = data.pet || {
+            name: 'Nova', level: 1, xp: 0, totalXp: 100, animState: 'idle',
+            lastCompletedSessionAt: new Date().toISOString(),
+            credits: 0, ownedItems: [], equippedItems: {}
+        }
+
+        if (initialPetState.lastCompletedSessionAt) {
+            const lastSessionTime = new Date(initialPetState.lastCompletedSessionAt).getTime()
+            if (Date.now() - lastSessionTime > 24 * 60 * 60 * 1000) {
+                initialPetState.animState = 'low-power'
+            } else if (initialPetState.animState === 'low-power' || initialPetState.animState === 'happy' || initialPetState.animState === 'sad' || initialPetState.animState === 'celebration') {
+                // Reset temporary/punitive states if within 24hr and hydrating
+                initialPetState.animState = 'idle'
+            }
+        } else {
+            initialPetState.lastCompletedSessionAt = new Date().toISOString()
+        }
 
         set({
             settings: data.settings,
@@ -403,10 +608,16 @@ export const useAppStore = create<AppStore>((set, get) => ({
             ],
             activeTaskId: restoredActiveTaskId,
             schedule: data.schedule || [], // Default schedule state for existing users
+            pet: initialPetState,
+            dailyMissions: data.dailyMissions || [],
+            lastMissionReset: data.lastMissionReset || new Date().toISOString(),
             timer: data.timer.status === 'running'
-                ? { ...data.timer, status: 'paused' } // Auto-pause if it was running
-                : data.timer,
+                ? { ...data.timer, status: 'paused', lastTick: undefined } // Auto-pause if it was running
+                : { ...data.timer, lastTick: undefined },
         })
+
+        // Verify daily missions on load
+        setTimeout(() => get().checkDailyMissions(), 0)
     },
 
     // ─── Mock Data ───

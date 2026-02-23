@@ -19,6 +19,19 @@ function getDefaultData(): AppData {
         },
         activeTaskId: null,
         schedule: [],
+        pet: {
+            name: 'Nova',
+            level: 1,
+            xp: 0,
+            totalXp: 100,
+            animState: 'idle',
+            lastCompletedSessionAt: new Date().toISOString(),
+            credits: 0,
+            ownedItems: [],
+            equippedItems: {}
+        },
+        dailyMissions: [],
+        lastMissionReset: new Date().toISOString()
     }
 }
 
@@ -35,6 +48,9 @@ export function loadData(): AppData {
             timer: parsed.timer ?? getDefaultData().timer,
             activeTaskId: parsed.activeTaskId ?? null,
             schedule: parsed.schedule ?? getDefaultData().schedule,
+            pet: { ...getDefaultData().pet, ...parsed.pet },
+            dailyMissions: parsed.dailyMissions ?? getDefaultData().dailyMissions,
+            lastMissionReset: parsed.lastMissionReset ?? getDefaultData().lastMissionReset,
         }
     } catch {
         return getDefaultData()
@@ -79,6 +95,9 @@ export async function loadDataAsync(): Promise<AppData> {
                 timer: parsed.timer ?? getDefaultData().timer,
                 activeTaskId: parsed.activeTaskId ?? null,
                 schedule: parsed.schedule ?? [],
+                pet: { ...getDefaultData().pet, ...parsed.pet },
+                dailyMissions: parsed.dailyMissions ?? getDefaultData().dailyMissions,
+                lastMissionReset: parsed.lastMissionReset ?? getDefaultData().lastMissionReset,
             }
         }
         return loadData()

@@ -5,7 +5,7 @@ import { exportData, importData } from '@/lib/storage'
 import { cn } from '@/lib/utils'
 import { Download, Upload, RotateCcw, Bell, Volume2, Zap, Monitor, Laptop, Play } from 'lucide-react'
 import { staggerContainer, staggerItem, springBouncy, buttonPress } from '@/lib/animations'
-import { playWorkComplete, playBreakComplete, playTimerStart, playTimerSkip, playDeadpoolWorkComplete, playDeadpoolBreakComplete } from '@/lib/sounds'
+import { playThemeWorkComplete, playThemeBreakComplete, playTimerStart, playTimerSkip } from '@/lib/sounds'
 
 export function SettingsPage() {
     const settings = useAppStore((s) => s.settings)
@@ -226,8 +226,8 @@ export function SettingsPage() {
                             <div className="ml-11 flex flex-wrap gap-2">
                                 {[
                                     { label: 'Start', fn: playTimerStart },
-                                    { label: 'Work Done', fn: activeTheme?.style === 'deadpool' ? playDeadpoolWorkComplete : playWorkComplete },
-                                    { label: 'Break Done', fn: activeTheme?.style === 'deadpool' ? playDeadpoolBreakComplete : playBreakComplete },
+                                    { label: 'Work Done', fn: () => playThemeWorkComplete(activeTheme?.style) },
+                                    { label: 'Break Done', fn: () => playThemeBreakComplete(activeTheme?.style) },
                                     { label: 'Skip', fn: playTimerSkip },
                                 ].map(({ label, fn }) => (
                                     <button
