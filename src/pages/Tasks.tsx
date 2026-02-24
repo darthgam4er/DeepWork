@@ -214,6 +214,8 @@ export function Tasks() {
                                             whileTap={{ scale: 0.8 }}
                                             transition={springBouncy}
                                             className="mt-1 shrink-0"
+                                            aria-label={task.status === 'done' ? "Mark as todo" : "Mark as done"}
+                                            title={task.status === 'done' ? "Mark as todo" : "Mark as done"}
                                         >
                                             {task.status === 'done' ? (
                                                 <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center border border-emerald-500/30">
@@ -245,6 +247,8 @@ export function Tasks() {
                                                         whileHover={{ scale: 1.15 }}
                                                         whileTap={{ scale: 0.85 }}
                                                         className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+                                                        aria-label="Edit task"
+                                                        title="Edit task"
                                                     >
                                                         <Edit3 className="w-4 h-4" />
                                                     </motion.button>
@@ -253,6 +257,8 @@ export function Tasks() {
                                                         whileHover={{ scale: 1.15 }}
                                                         whileTap={{ scale: 0.85, rotate: 10 }}
                                                         className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-500/10 text-[hsl(var(--muted-foreground))] hover:text-red-400"
+                                                        aria-label="Delete task"
+                                                        title="Delete task"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </motion.button>
@@ -331,6 +337,8 @@ export function Tasks() {
                                     whileTap={{ scale: 0.9 }}
                                     transition={springBouncy}
                                     className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[hsl(var(--secondary))] transition-colors"
+                                    aria-label="Close modal"
+                                    title="Close"
                                 >
                                     <X className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                                 </motion.button>
