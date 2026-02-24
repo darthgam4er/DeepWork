@@ -105,6 +105,7 @@ export function Timer() {
                             transition={springBouncy}
                             className="glass-button p-2.5 rounded-xl border border-border/50 bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all shadow-sm"
                             title="Mini Mode"
+                            aria-label="Enter Mini Mode"
                         >
                             <PictureInPicture2 className="w-4 h-4" />
                         </motion.button>
@@ -225,6 +226,7 @@ export function Timer() {
                                 isRetro ? "border border-[hsl(var(--border))] bg-[hsl(var(--secondary))]" : "glass-button rounded-2xl bg-secondary/50 border border-border/50 shadow-sm"
                             )}
                             title="Reset"
+                            aria-label="Reset Timer"
                         >
                             <RotateCcw className="w-5 h-5 drop-shadow-sm" />
                         </motion.button>
@@ -245,6 +247,8 @@ export function Timer() {
                                     ? "bg-secondary/40 text-foreground border border-border/50 backdrop-blur-md hover:bg-secondary/60"
                                     : "bg-gradient-to-br from-primary to-primary/80 border border-primary/20 text-primary-foreground shadow-[0_8px_32px_-8px_rgba(var(--primary),0.5)] hover:shadow-[0_12px_40px_-8px_rgba(var(--primary),0.6)]"
                             )}
+                            aria-label={timer.status === 'running' ? "Pause Timer" : "Start Timer"}
+                            title={timer.status === 'running' ? "Pause" : "Start"}
                         >
                             {!isRetro && timer.status !== 'running' && (
                                 <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -272,6 +276,7 @@ export function Timer() {
                                 isRetro ? "border border-[hsl(var(--border))] bg-[hsl(var(--secondary))]" : "glass-button rounded-2xl bg-secondary/50 border border-border/50 shadow-sm"
                             )}
                             title="Skip"
+                            aria-label="Skip to next session"
                         >
                             <SkipForward className="w-5 h-5 drop-shadow-sm" />
                         </motion.button>
