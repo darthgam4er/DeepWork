@@ -144,15 +144,15 @@ const ThemeCard = ({ theme, isActive, onClick, onEdit, onExport, onDelete }: any
             <div className="flex items-center gap-1 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 {!theme.isBuiltIn && (
                     <>
-                        <button onClick={(e) => { e.stopPropagation(); onEdit(theme) }} className="p-2 rounded-lg hover:bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors" title="Edit Theme">
+                        <button onClick={(e) => { e.stopPropagation(); onEdit(theme) }} className="p-2 rounded-lg hover:bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors" title="Edit Theme" aria-label="Edit Theme">
                             <Palette className="w-4 h-4" />
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); onDelete(theme.id) }} className="p-2 rounded-lg hover:bg-red-500/10 text-[hsl(var(--muted-foreground))] hover:text-red-500 transition-colors" title="Delete Theme">
+                        <button onClick={(e) => { e.stopPropagation(); onDelete(theme.id) }} className="p-2 rounded-lg hover:bg-red-500/10 text-[hsl(var(--muted-foreground))] hover:text-red-500 transition-colors" title="Delete Theme" aria-label="Delete Theme">
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </>
                 )}
-                <button onClick={(e) => { e.stopPropagation(); onExport(theme) }} className="p-2 rounded-lg hover:bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors ml-auto" title="Export Theme">
+                <button onClick={(e) => { e.stopPropagation(); onExport(theme) }} className="p-2 rounded-lg hover:bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors ml-auto" title="Export Theme" aria-label="Export Theme">
                     <Download className="w-4 h-4" />
                 </button>
             </div>
@@ -346,7 +346,7 @@ export function ThemeStudio() {
                                 <h1 className="text-xl font-bold font-display">Theme Editor</h1>
                                 <p className="text-xs text-[hsl(var(--muted-foreground))]">Design your perfect workspace</p>
                             </div>
-                            <button onClick={() => setEditingId(null)} className="p-2 hover:bg-[hsl(var(--secondary))] rounded-full transition-colors">
+                            <button onClick={() => setEditingId(null)} className="p-2 hover:bg-[hsl(var(--secondary))] rounded-full transition-colors" title="Close" aria-label="Close Editor">
                                 <X className="w-5 h-5 text-[hsl(var(--muted-foreground))]" />
                             </button>
                         </div>
@@ -431,6 +431,7 @@ export function ThemeStudio() {
                                                     value={hslStringToHex(editColors[key])}
                                                     onChange={(e) => setEditColors({ ...editColors, [key]: hexToHslString(e.target.value) })}
                                                     className="w-10 h-10 rounded-xl cursor-pointer border-none bg-transparent"
+                                                    aria-label={colorLabels[key]}
                                                 />
                                                 <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10 group-hover:ring-white/30 pointer-events-none" />
                                             </div>
