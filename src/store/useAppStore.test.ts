@@ -115,6 +115,10 @@ describe('useAppStore Timer Logic', () => {
     })
 
     it('persists timer updates to localStorage', () => {
+        // Move time forward significantly to ensure we bypass the persistence throttle
+        // which might have been triggered by previous tests (since _lastTickPersist is module-scoped)
+        vi.setSystemTime(Date.now() + 10000)
+
         const store = useAppStore.getState()
 
         store.startTimer()
