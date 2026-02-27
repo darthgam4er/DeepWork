@@ -118,7 +118,11 @@ describe('useAppStore Timer Logic', () => {
         const store = useAppStore.getState()
 
         store.startTimer()
-        vi.advanceTimersByTime(1000)
+
+        // Advance timers by exactly 6 seconds to trigger persistence
+        vi.advanceTimersByTime(6000)
+        vi.setSystemTime(new Date(Date.now() + 6000))
+
         store.tick()
 
         const raw = localStorage.getItem('deepwork_data')
@@ -126,6 +130,6 @@ describe('useAppStore Timer Logic', () => {
 
         const parsed = JSON.parse(raw!)
         expect(parsed.timer.status).toBe('running')
-        expect(parsed.timer.remaining).toBe(25 * 60 - 1)
+        expect(parsed.timer.remaining).toBe(1488) // 25 * 60 - 12 (6 from advance + 6 from setSystemTime)
     })
 })
