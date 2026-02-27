@@ -202,6 +202,8 @@ export function Tasks() {
                                     <div className="flex items-start gap-4">
                                         {/* Status Toggle */}
                                         <motion.button
+                                            aria-label={task.status === 'done' ? 'Mark as incomplete' : 'Mark as complete'}
+                                            title={task.status === 'done' ? 'Mark as incomplete' : 'Mark as complete'}
                                             onClick={() => {
                                                 if (task.status === 'done') {
                                                     updateTask(task.id, { status: 'todo' })
@@ -241,6 +243,8 @@ export function Tasks() {
                                                 {/* Quick Actions (Hover) */}
                                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
                                                     <motion.button
+                                                        aria-label="Edit task"
+                                                        title="Edit task"
                                                         onClick={() => openEditModal(task)}
                                                         whileHover={{ scale: 1.15 }}
                                                         whileTap={{ scale: 0.85 }}
@@ -249,6 +253,8 @@ export function Tasks() {
                                                         <Edit3 className="w-4 h-4" />
                                                     </motion.button>
                                                     <motion.button
+                                                        aria-label="Delete task"
+                                                        title="Delete task"
                                                         onClick={() => deleteTask(task.id)}
                                                         whileHover={{ scale: 1.15 }}
                                                         whileTap={{ scale: 0.85, rotate: 10 }}
@@ -326,6 +332,8 @@ export function Tasks() {
                                     {editingTask ? 'Edit Task' : 'New Task'}
                                 </h2>
                                 <motion.button
+                                    aria-label="Close modal"
+                                    title="Close modal"
                                     onClick={() => setShowModal(false)}
                                     whileHover={{ scale: 1.1, rotate: 90 }}
                                     whileTap={{ scale: 0.9 }}
